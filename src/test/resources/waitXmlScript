@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<Data>
+  <Dataset>
+      {js: java.lang.Thread.sleep(10000);}{/js}
+      <Id>1</Id>
+      <Text>text</Text>
+  </Dataset>
+</Data>

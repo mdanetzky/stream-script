@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<Data>
+  {query: select id, text from
+  -- comment
+  data;id|int:text|string}
+  <Dataset>
+      <Id>{var:id/}</Id>
+      <Text>{var:text/}</Text>
+  </Dataset>
+  {/query}
+</Data>

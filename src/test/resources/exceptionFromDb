@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<Data>
+  {query: wrong_sql_query;id|int:text|string}
+  <Dataset>
+      <Id>{var:id/}</Id>
+      <Text>{var:text/}</Text>
+  </Dataset>
+  {/query}
+</Data>
