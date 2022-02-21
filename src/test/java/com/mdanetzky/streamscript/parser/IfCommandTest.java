@@ -6,14 +6,11 @@ import akka.util.ByteString;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+
+import java.util.concurrent.ExecutionException;
 
 public class IfCommandTest {
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void producesContentIfTrue() throws Exception {
@@ -81,10 +78,11 @@ public class IfCommandTest {
     }
 
     @Test
-    public void throwExceptionIfOutcomeIsNotBoolean() throws Exception {
-        expectedException.expectMessage("instead of a boolean value");
+    public void throwExceptionIfOutcomeIsNotBoolean() {
         String script = "{if:'some_string';}text{/if}";
         Source<ByteString, NotUsed> source = ScriptTestTools.createSourceFromScript(script, HashMap.empty());
-        ScriptTestTools.materializeSource(source);
+        ExecutionException e = Assert.assertThrows(ExecutionException.class, () ->
+                ScriptTestTools.materializeSource(source));
+        Assert.assertTrue(e.getMessage().contains("instead of a boolean value"));
     }
 }

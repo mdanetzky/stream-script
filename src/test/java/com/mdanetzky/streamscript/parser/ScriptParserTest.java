@@ -1,16 +1,13 @@
 package com.mdanetzky.streamscript.parser;
 
-import org.junit.Rule;
+import com.mdanetzky.streamscript.ScriptParserException;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ScriptParserTest {
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void returnsSameStringIfNotParsed() {
@@ -46,10 +43,11 @@ public class ScriptParserTest {
 
     @Test
     public void throwsUnmatchedTagException() {
-        expectedException.expectMessage(
-                "Closing tag:\"{/ver}\" does not match opening tag:\"{var:variableName}\"");
         String script = "{var:variableName}{/ver}";
-        ScriptParser.parseToElements(script);
+        ScriptParserException e = Assert.assertThrows(ScriptParserException.class, () ->
+                ScriptParser.parseToElements(script));
+        Assert.assertTrue(e.getMessage().contains(
+                "Closing tag:\"{/ver}\" does not match opening tag:\"{var:variableName}\""));
     }
 
     @Test

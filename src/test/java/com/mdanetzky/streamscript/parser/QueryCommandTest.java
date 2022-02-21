@@ -4,6 +4,7 @@ import akka.NotUsed;
 import akka.stream.alpakka.slick.javadsl.SlickSession;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
+import com.mdanetzky.streamscript.ScriptParserException;
 import com.mdanetzky.streamscript.parser.commands.QueryCommand;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -11,9 +12,7 @@ import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.util.Calendar;
 import java.util.concurrent.ExecutionException;
@@ -30,9 +29,6 @@ public class QueryCommandTest {
             "INSERT INTO DATES VALUES(2, '2010-12-31 15:45:21');",
             "INSERT INTO DATES VALUES(3, '2020-12-31 15:45:21');"
     };
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @BeforeClass
     public static void initDb() throws ExecutionException, InterruptedException {
@@ -100,8 +96,9 @@ public class QueryCommandTest {
 
     @Test
     public void throwsOnMalformedParameters() {
-        expectedException.expectMessage("malformedParam");
         QueryCommand queryCommand = new QueryCommand();
-        queryCommand.setCode("select query;malformedParam");
+        ScriptParserException e = Assert.assertThrows(ScriptParserException.class, () ->
+                queryCommand.setCode("select query;malformedParam"));
+        Assert.assertTrue(e.getMessage().contains("malformedParam"));
     }
 }

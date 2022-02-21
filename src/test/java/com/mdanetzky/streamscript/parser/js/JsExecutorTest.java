@@ -2,16 +2,10 @@ package com.mdanetzky.streamscript.parser.js;
 
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class JsExecutorTest {
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
 //    @Test
 //    public void returnsString() {
@@ -22,9 +16,10 @@ public class JsExecutorTest {
 
     @Test
     public void throwsExceptionWithScriptInMessage() {
-        expectedException.expectMessage(CoreMatchers.containsString("return 'test_value';"));
         Map<String, Object> context = HashMap.empty();
-        JsExecutor.execute(context, "return 'test_value';");
+        RuntimeException e = Assert.assertThrows(RuntimeException.class, () ->
+                JsExecutor.execute(context, "return 'test_value';"));
+        Assert.assertTrue(e.getMessage().contains("return 'test_value';"));
     }
 
     @Test
@@ -36,10 +31,11 @@ public class JsExecutorTest {
 
     @Test
     public void throwsExceptionWithContextInMessage() {
-        expectedException.expectMessage(CoreMatchers.containsString("variable_value"));
         Map<String, Object> context = HashMap.empty();
-        context = context.put("variable", "variable_value");
-        JsExecutor.execute(context, "return 'test_value';");
+        final Map<String, Object> final_context = context.put("variable", "variable_value");
+        RuntimeException e = Assert.assertThrows(RuntimeException.class, () ->
+                JsExecutor.execute(final_context, "return 'test_value';"));
+        Assert.assertTrue(e.getMessage().contains("variable_value"));
     }
 
 //    @Test
@@ -54,7 +50,8 @@ public class JsExecutorTest {
 
     @Test
     public void throwsExceptionOnWrongJsSyntax() {
-        expectedException.expectMessage("for (;");
-        JsExecutor.execute(HashMap.empty(), "for (;");
+        RuntimeException e = Assert.assertThrows(RuntimeException.class, () ->
+                JsExecutor.execute(HashMap.empty(), "for (;"));
+        Assert.assertTrue(e.getMessage().contains("for (;"));
     }
 }

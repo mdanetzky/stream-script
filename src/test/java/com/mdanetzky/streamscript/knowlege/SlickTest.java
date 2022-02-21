@@ -51,7 +51,7 @@ public class SlickTest {
         saveFuture.toCompletableFuture().get();
         RunnableGraph<CompletionStage<Done>> readGraph =
                 Slick.source(slickSession, "SELECT * FROM DATA;",
-                        (SlickRow row) -> new Data(row.nextInt(), row.nextString()))
+                                (SlickRow row) -> new Data(row.nextInt(), row.nextString()))
                         .toMat(Sink.foreach(System.out::println), Keep.right());
         CompletionStage<Done> printFuture = readGraph.run(materializer);
         printFuture.toCompletableFuture().get();

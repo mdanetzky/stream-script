@@ -2,17 +2,13 @@ package com.mdanetzky.streamscript.parser;
 
 import com.mdanetzky.streamscript.parser.commands.PlainText;
 import com.mdanetzky.streamscript.parser.commands.VarCommand;
-import org.junit.Rule;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class CommandParserTest {
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void parsesOneElementFromScriptParser() {
@@ -31,33 +27,38 @@ public class CommandParserTest {
 
     @Test
     public void throwsExceptionOnUnknownDataTypeInQueryResults() {
-        expectedException.expectMessage("'unknown_data_type'");
         String script = "{query:select;field|unknown_Data_Type/}";
-        ScriptParser.parse(script);
+        RuntimeException e = Assert.assertThrows(RuntimeException.class, () ->
+                ScriptParser.parse(script));
+        Assert.assertTrue(e.getMessage().contains("'unknown_data_type'"));
     }
 
     @Test
     public void throwsOnMissingCommandParameters() {
-        expectedException.expectMessage("is missing @CommandParameters annotated method");
-        CommandParser.scanCommands("test_commands.missing_command_code");
+        RuntimeException e = Assert.assertThrows(RuntimeException.class, () ->
+                CommandParser.scanCommands("test_commands.missing_command_code"));
+        Assert.assertTrue(e.getMessage().contains("is missing @CommandParameters annotated method"));
     }
 
     @Test
     public void throwsOnTwoCommandsForTheSameName() {
-        expectedException.expectMessage(" implement the same command: 'sameCommand'");
-        CommandParser.scanCommands("test_commands.two_with_same_name");
+        RuntimeException e = Assert.assertThrows(RuntimeException.class, () ->
+                CommandParser.scanCommands("test_commands.two_with_same_name"));
+        Assert.assertTrue(e.getMessage().contains(" implement the same command: 'sameCommand'"));
     }
 
     @Test
     public void throwsOnMissingSourceInCommand() {
-        expectedException.expectMessage("missing @StreamSource annotated method");
-        CommandParser.scanCommands("test_commands.missing_source");
+        RuntimeException e = Assert.assertThrows(RuntimeException.class, () ->
+                CommandParser.scanCommands("test_commands.missing_source"));
+        Assert.assertTrue(e.getMessage().contains("missing @StreamSource annotated method"));
     }
 
     @Test
     public void throwsOnMissingDefaultConstructorInCommand() {
-        expectedException.expectMessage("is missing default constructor");
-        CommandParser.scanCommands("test_commands.no_default_constructor");
+        RuntimeException e = Assert.assertThrows(RuntimeException.class, () ->
+                CommandParser.scanCommands("test_commands.no_default_constructor"));
+        Assert.assertTrue(e.getMessage().contains("is missing default constructor"));
     }
 
     @Test
@@ -71,9 +72,10 @@ public class CommandParserTest {
 
     @Test
     public void throwsExceptionOnUnknownCommand() {
-        expectedException.expectMessage("Unknown command");
         String commandWithParams = "{unknown_command:params}";
-        CommandParser.parseCommand(commandWithParams);
+        RuntimeException e = Assert.assertThrows(RuntimeException.class, () ->
+                CommandParser.parseCommand(commandWithParams));
+        Assert.assertTrue(e.getMessage().contains("Unknown command"));
     }
 
     @Test

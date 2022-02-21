@@ -3,6 +3,7 @@ package com.mdanetzky.streamscript.integration;
 import akka.Done;
 import akka.stream.alpakka.slick.javadsl.SlickSession;
 import com.mdanetzky.streamscript.Resources;
+import com.mdanetzky.streamscript.ScriptParserException;
 import com.mdanetzky.streamscript.TestUtil;
 import com.mdanetzky.streamscript.integration.xmlgenerator.XmlFileGenerator;
 import com.mdanetzky.streamscript.integration.xmlgenerator.XmlFileGeneratorImpl;
@@ -11,9 +12,7 @@ import com.mdanetzky.streamscript.parser.ScriptTestTools;
 import com.typesafe.config.Config;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import scala.util.Try;
 
 import java.io.IOException;
@@ -32,9 +31,6 @@ public class XmlFileGeneratorTest {
             "INSERT INTO DATA VALUES(2, 'second');",
             "INSERT INTO DATA VALUES(3, 'third');"
     };
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @BeforeClass
     public static void initDb() throws ExecutionException, InterruptedException {
@@ -66,10 +62,11 @@ public class XmlFileGeneratorTest {
 
     @Test
     public void failsOnErroneousScript() {
-        expectedException.expectMessage("Unknown command: 'noSuchCommand:'");
         String script = "{noSuchCommand:/}";
         XmlFileGenerator generator = new XmlFileGeneratorImpl();
-        generator.validateScript(script);
+        ScriptParserException e = Assert.assertThrows(ScriptParserException.class, () ->
+                generator.validateScript(script));
+        Assert.assertTrue(e.getMessage().contains("Unknown command: 'noSuchCommand:'"));
     }
 
     @Test
@@ -87,8 +84,7 @@ public class XmlFileGeneratorTest {
     }
 
     @Test
-    public void abortsScript() throws Exception {
-        expectedException.expectMessage("test cause");
+    public void abortsScript() {
         String script = Resources.read("/simpleXmlFromDb");
         String xsd = Resources.read("/simpleXml.xsd");
         XmlFileGenerator generator = new XmlFileGeneratorImpl();
@@ -96,31 +92,35 @@ public class XmlFileGeneratorTest {
         generator.setDbConnection(TestUtil.getH2());
         XmlFileGeneratorResponse response = generator.runScript(script, new HashMap<>());
         response.abort("test cause");
-        TestUtil.getStringFromStream(response.getInputStream());
+        IOException e = Assert.assertThrows(IOException.class, () ->
+                TestUtil.getStringFromStream(response.getInputStream()));
+        Assert.assertTrue(e.getMessage().contains("test cause"));
     }
 
     @Test
-    public void runsDbExceptionScript() throws Exception {
-        expectedException.expectMessage("wrong_sql_query");
+    public void runsDbExceptionScript() {
         String script = Resources.read("/exceptionFromDb");
         String xsd = Resources.read("/simpleXml.xsd");
         XmlFileGenerator generator = new XmlFileGeneratorImpl();
         generator.setXsd(xsd);
         generator.setDbConnection(TestUtil.getH2());
         XmlFileGeneratorResponse response = generator.runScript(script, new HashMap<>());
-        TestUtil.getStringFromStream(response.getInputStream());
+        IOException e = Assert.assertThrows(IOException.class, () ->
+                TestUtil.getStringFromStream(response.getInputStream()));
+        Assert.assertTrue(e.getMessage().contains("wrong_sql_query"));
     }
 
     @Test
-    public void runsXsdExceptionScript() throws Exception {
-        expectedException.expectMessage("UnexpectedTag");
+    public void runsXsdExceptionScript() {
         String script = Resources.read("/exceptionFromXsdValidator");
         String xsd = Resources.read("/simpleXml.xsd");
         XmlFileGenerator generator = new XmlFileGeneratorImpl();
         generator.setXsd(xsd);
         generator.setDbConnection(TestUtil.getH2());
         XmlFileGeneratorResponse response = generator.runScript(script, new HashMap<>());
-        TestUtil.getStringFromStream(response.getInputStream());
+        IOException e = Assert.assertThrows(IOException.class, () ->
+                TestUtil.getStringFromStream(response.getInputStream()));
+        Assert.assertTrue(e.getMessage().contains("UnexpectedTag"));
     }
 
     @Test
@@ -183,8 +183,7 @@ public class XmlFileGeneratorTest {
     }
 
     @Test
-    public void throwsExceptionOnTimeout() throws Exception {
-        expectedException.expectMessage("Timeout");
+    public void throwsExceptionOnTimeout() {
         Map<String, Object> context = new HashMap<>();
         context.put(XmlFileGeneratorImpl.TIMEOUT_PARAMETER, "1");
         String script = Resources.read("/waitXmlScript");
@@ -193,6 +192,8 @@ public class XmlFileGeneratorTest {
         generator.setXsd(xsd);
         generator.setDbConnection(TestUtil.getH2());
         XmlFileGeneratorResponse response = generator.runScript(script, context);
-        TestUtil.getStringFromStream(response.getInputStream());
+        IOException e = Assert.assertThrows(IOException.class, () ->
+                TestUtil.getStringFromStream(response.getInputStream()));
+        Assert.assertTrue(e.getMessage().contains("Timeout"));
     }
 }
