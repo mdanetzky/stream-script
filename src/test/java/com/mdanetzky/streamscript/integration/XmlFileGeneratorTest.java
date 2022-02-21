@@ -101,7 +101,7 @@ public class XmlFileGeneratorTest {
 
     @Test
     public void runsDbExceptionScript() throws Exception {
-        expectedException.expectMessage("WRONG_SQL_QUERY");
+        expectedException.expectMessage("wrong_sql_query");
         String script = Resources.read("/exceptionFromDb");
         String xsd = Resources.read("/simpleXml.xsd");
         XmlFileGenerator generator = new XmlFileGeneratorImpl();
