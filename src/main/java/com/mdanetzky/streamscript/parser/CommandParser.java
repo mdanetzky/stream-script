@@ -3,7 +3,7 @@ package com.mdanetzky.streamscript.parser;
 import com.mdanetzky.streamscript.ScriptParserException;
 import com.mdanetzky.streamscript.parser.annotations.Command;
 import org.reflections.Reflections;
-import org.reflections.scanners.TypeAnnotationsScanner;
+import org.reflections.scanners.Scanners;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ class CommandParser {
 
     static Map<String, CommandClassDescriptor> scanCommands(String packageRoot) {
         Map<String, CommandClassDescriptor> commands = new HashMap<>();
-        Reflections reflections = new Reflections(packageRoot, new TypeAnnotationsScanner());
+        Reflections reflections = new Reflections(packageRoot, Scanners.TypesAnnotated);
         Set<Class<?>> commandClasses = reflections.getTypesAnnotatedWith(Command.class, true);
         for (Class<?> commandClass : commandClasses) {
             CommandClassDescriptor commandDescriptor = new CommandClassDescriptor(commandClass);
